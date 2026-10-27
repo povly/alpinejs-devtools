@@ -21,6 +21,20 @@ doesn't like `@layer` (which TW@4 uses)
   height: 0;
 }
 
+@keyframes devtools-row-flash {
+  from {
+    background-color: rgba(59, 130, 246, 0.35);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.data-row-flash {
+  animation: devtools-row-flash 1.5s ease-out;
+  border-radius: 0.125rem;
+}
+
 .right {
   border-top: 4px solid transparent;
   border-bottom: 4px solid transparent;

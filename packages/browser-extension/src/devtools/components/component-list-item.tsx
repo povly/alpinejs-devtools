@@ -1,4 +1,4 @@
-import { Show } from 'solid-js';
+import { createMemo, Show } from 'solid-js';
 import {
   hoverLeftComponent,
   hoverOnComponent,
@@ -9,8 +9,16 @@ import { Component } from '../types';
 import { isEarlyAccess } from '../../lib/isEarlyAccess';
 import { inspectUserGlobal, scrollElGlobalIntoView } from '../inspect';
 import { metric } from '../metrics';
+import { lastChange } from '../state/reactivity';
 
 export function ComponentListItem({ component }: { component: Component }) {
+  const hasRecentChange = createMemo(() => {
+    const change = lastChange();
+    return (
+      !!change && change.source === 'component' && String(change.targetId) === String(component.id)
+    );
+  });
+
   return (
     <a
       classList={{
@@ -48,6 +56,12 @@ export function ComponentListItem({ component }: { component: Component }) {
         >
           = <span>{`$x${component.id - 1}`}</span>
         </div>
+        <Show when={hasRecentChange()}>
+          <span
+            class="ml-1 w-2 h-2 rounded-full bg-blue-500 animate-pulse"
+            data-testid="component-changed-indicator"
+          />
+        </Show>
         <Show when={isEarlyAccess()}>
           <button
             class="ml-auto px-1 py-2 flex-row cursor-pointer"

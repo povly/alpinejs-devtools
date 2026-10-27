@@ -1,5 +1,7 @@
+import { createMemo, Show } from 'solid-js';
 import { metric } from '../metrics';
 import { selectStore } from '../state/stores';
+import { lastChange } from '../state/reactivity';
 
 interface StoreListItemProps {
   idx: number;
@@ -8,6 +10,11 @@ interface StoreListItemProps {
 }
 
 export function StoreListItem({ idx, storeName, isOpen }: StoreListItemProps) {
+  const hasRecentChange = createMemo(() => {
+    const change = lastChange();
+    return !!change && change.source === 'store' && change.targetId === storeName;
+  });
+
   return (
     <a
       classList={{
@@ -36,6 +43,12 @@ export function StoreListItem({ idx, storeName, isOpen }: StoreListItemProps) {
         >
           = <span>{`$s${idx}`}</span>
         </div>
+        <Show when={hasRecentChange()}>
+          <span
+            class="ml-1 w-2 h-2 rounded-full bg-blue-500 animate-pulse"
+            data-testid="store-changed-indicator"
+          />
+        </Show>
       </h5>
     </a>
   );

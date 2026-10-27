@@ -6,6 +6,7 @@ import { storesValue } from '../state/stores';
 import { effect } from 'solid-js/web';
 import { bucketCount, metric, sampledMetric } from '../metrics';
 import { breakpoint } from '../theme';
+import { ActivityFlyout } from './activity-flyout';
 
 interface FooterProps {
   setActiveTab: Function;
@@ -164,6 +165,7 @@ export function Footer({ setActiveTab }: FooterProps) {
       </div>
 
       <div class="text-gray-500 dark:text-gray-200 flex items-center ml-3 px-2.5 space-x-1 border-l border-gray-300 transition-colors duration-700">
+        <ActivityFlyout />
         <a
           href="https://github.com/alpine-collective/alpinejs-devtools/issues/new"
           target="_blank"

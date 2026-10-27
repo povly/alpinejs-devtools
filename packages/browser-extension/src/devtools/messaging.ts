@@ -6,6 +6,7 @@ import { setAdditionalError } from './state/errors';
 import { setStoresFromList, setStoreData } from './state/stores';
 import { setPageLoaded } from './state/app';
 import { setPageInfo } from './state/page-info';
+import { registerDataChange } from './state/reactivity';
 import { exitInspectorMode } from './state/inspector';
 import { state } from './state/store';
 import type { BackendToPanelMessage, PanelToBackendMessage } from './types';
@@ -53,11 +54,18 @@ export function handleBackendToPanelMessage(
     case BACKEND_TO_PANEL_MESSAGES.SET_DATA: {
       const comps = JSON.parse(message.data);
       setComponentData(message.componentId, comps);
+      registerDataChange(
+        'component',
+        message.componentId,
+        state.components[message.componentId]?.name ?? String(message.componentId),
+        message.changedKeys,
+      );
       setPort(port);
       break;
     }
     case BACKEND_TO_PANEL_MESSAGES.SET_STORE_DATA: {
       setStoreData(message.storeName, JSON.parse(message.storeData));
+      registerDataChange('store', message.storeName, message.storeName, message.changedKeys);
       setPort(port);
       break;
     }

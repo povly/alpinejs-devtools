@@ -7,6 +7,7 @@ import { FlattenedComponentData, FlattenedStoreData } from '../types';
 import { effect } from 'solid-js/web';
 import { metric } from '../metrics';
 import { isEarlyAccess } from '../../lib/isEarlyAccess';
+import { lastChange } from '../state/reactivity';
 import { DataAttrSource } from '../types';
 import { ROOT_VALUE } from '../../lib/constants';
 
@@ -27,6 +28,29 @@ export function DataAttributeDisplay(props: DataDisplayProps) {
   const isRootValueAttr = createMemo(
     () => props.attributeData.attributeName === ROOT_VALUE && props.type === 'store',
   );
+
+  const isRecentlyChanged = createMemo(() => {
+    const change = lastChange();
+    if (!change || props.type === 'message') {
+      return false;
+    }
+    if (change.source === 'component') {
+      if (props.type !== 'component') {
+        return false;
+      }
+      return (
+        String(change.targetId) === String(props.attributeData.parentComponentId) &&
+        change.keys.includes(props.attributeData.id)
+      );
+    }
+    if (props.type !== 'store') {
+      return false;
+    }
+    return (
+      change.targetId === props.attributeData.parentStoreName &&
+      change.keys.includes(props.attributeData.id)
+    );
+  });
 
   const toggleDataAttributeOpened = () => {
     metric(`${props.type}_data_attr_opened`, {
@@ -74,7 +98,11 @@ export function DataAttributeDisplay(props: DataDisplayProps) {
   };
 
   return (
-    <div class="group flex items-center">
+    <div
+      class="group flex items-center"
+      classList={{ 'data-row-flash': isRecentlyChanged() }}
+      data-testid={`data-attribute-row-${props.attributeData.id}`}
+    >
       <Show when={props.attributeData.isOpened}>
         <a
           style={{ 'margin-left': `${props.attributeData.depth}px` }}

@@ -44,6 +44,53 @@ function serializeDataProperty(value) {
   };
 }
 
+const MAX_DIFF_DEPTH = 32;
+
+function computeChangedDataKeys(prevData, nextData) {
+  const changedKeys = [];
+  if (!prevData || !nextData) {
+    return changedKeys;
+  }
+
+  const isPlainish = (v) => v !== null && typeof v === 'object';
+
+  const walkValues = (path, prevValue, nextValue, depth) => {
+    if (prevValue === nextValue) {
+      return;
+    }
+    if (Number.isNaN(prevValue) && Number.isNaN(nextValue)) {
+      return;
+    }
+    if (depth >= MAX_DIFF_DEPTH) {
+      changedKeys.push(path);
+      return;
+    }
+    if (isPlainish(prevValue) && isPlainish(nextValue)) {
+      const keys = new Set([...Object.keys(prevValue), ...Object.keys(nextValue)]);
+      for (const key of keys) {
+        walkValues(path ? `${path}.${key}` : key, prevValue[key], nextValue[key], depth + 1);
+      }
+      return;
+    }
+    changedKeys.push(path);
+  };
+
+  const allKeys = new Set([...Object.keys(prevData), ...Object.keys(nextData)]);
+  for (const key of allKeys) {
+    const prevWrapped = prevData[key];
+    const nextWrapped = nextData[key];
+    const prevType = prevWrapped ? prevWrapped.type : undefined;
+    const nextType = nextWrapped ? nextWrapped.type : undefined;
+    if (prevType !== nextType) {
+      changedKeys.push(key);
+      continue;
+    }
+    walkValues(key, prevWrapped?.value, nextWrapped?.value, 1);
+  }
+
+  return changedKeys;
+}
+
 export function init(forceStart = false) {
   const MSG_DEBOUNCE_MS = 10;
   class AlpineDevtoolsBackend {
@@ -60,6 +107,8 @@ export function init(forceStart = false) {
       this.selectedStoreName = null;
 
       this.enableSendDataMsg = true;
+      this._lastComponentDataSnapshots = new Map();
+      this._lastStoreDataSnapshots = new Map();
       this.debouncedSendComponentData = debounce(
         this.sendComponentData.bind(this),
         ([componentId]) => String(componentId),
@@ -259,6 +308,8 @@ export function init(forceStart = false) {
       this.exitInspectorMode();
       this.cleanupHoverElement();
       this.disconnectObserver();
+      this._lastComponentDataSnapshots.clear();
+      this._lastStoreDataSnapshots.clear();
 
       window.console.warn = this._realLogWarn;
       delete window[DEVTOOLS_ERROR_ELS_GLOBAL];
@@ -633,10 +684,21 @@ export function init(forceStart = false) {
         return acc;
       }, {});
 
+      const hasBaseline = this._lastComponentDataSnapshots.has(componentId);
+      const prevData = this._lastComponentDataSnapshots.get(componentId);
+      const changedKeys = hasBaseline ? computeChangedDataKeys(prevData, data) : [];
+      this._lastComponentDataSnapshots.set(componentId, data);
+      if (changedKeys.length > 0) {
+        console.debug(
+          `[alpine-devtools] component ${componentId} changed: ${changedKeys.join(', ')}`,
+        );
+      }
+
       this._postMessage({
         type: BACKEND_TO_PANEL_MESSAGES.SET_DATA,
         componentId,
         data: JSON.stringify(data),
+        changedKeys,
       });
     }
 
@@ -655,10 +717,21 @@ export function init(forceStart = false) {
             }, {})
           : { __root_value: serializeDataProperty(store) };
 
+      const hasBaseline = this._lastStoreDataSnapshots.has(selectedStoreName);
+      const prevData = this._lastStoreDataSnapshots.get(selectedStoreName);
+      const changedKeys = hasBaseline ? computeChangedDataKeys(prevData, storeData) : [];
+      this._lastStoreDataSnapshots.set(selectedStoreName, storeData);
+      if (changedKeys.length > 0) {
+        console.debug(
+          `[alpine-devtools] store "${selectedStoreName}" changed: ${changedKeys.join(', ')}`,
+        );
+      }
+
       this._postMessage({
         type: BACKEND_TO_PANEL_MESSAGES.SET_STORE_DATA,
         storeName: selectedStoreName,
         storeData: JSON.stringify(storeData),
+        changedKeys,
       });
     }
 
