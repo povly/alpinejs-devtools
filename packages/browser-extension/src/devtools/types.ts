@@ -3,8 +3,36 @@ import type { BACKEND_TO_PANEL_MESSAGES } from '../lib/constants';
 import type { ALPINE_DEVTOOLS_PANEL_SOURCE, ALPINE_DEVTOOLS_PROXY_SOURCE } from './ports';
 import { mapDataTypeToInputType } from '../lib/utils';
 
-export type TabValues = 'components' | 'stores' | 'warnings';
+export type TabValues = 'components' | 'stores' | 'warnings' | 'page';
 export type DataAttrSource = 'component' | 'store' | 'message';
+
+export interface PageScriptInfo {
+  src: string | null;
+  isInline: boolean;
+  type: string | null;
+  isModule: boolean;
+  isAsync: boolean;
+  isDeferred: boolean;
+  inlineLength: number | null;
+}
+
+export interface EcosystemTools {
+  hasHtmxTarget: boolean;
+  hasAlpineAjaxTarget: boolean;
+  hasPineconeRouter: boolean;
+  hasLivewire: boolean;
+  hasLiveView: boolean;
+  hasTurbo: boolean;
+}
+
+export interface PageInfo {
+  alpineVersion: string;
+  isV3: boolean;
+  directives: string[];
+  plugins: string[];
+  ecosystem: EcosystemTools;
+  scripts: PageScriptInfo[];
+}
 
 export type BackendToPanelMessageType =
   (typeof BACKEND_TO_PANEL_MESSAGES)[keyof typeof BACKEND_TO_PANEL_MESSAGES];

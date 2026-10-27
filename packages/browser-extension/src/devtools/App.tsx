@@ -9,6 +9,7 @@ import { handleResize, orientation } from './theme';
 import { StoreGrid } from './components/store-grid';
 import { TabValues } from './types';
 import { Warnings } from './components/warnings';
+import { PageInfo } from './components/page-info';
 
 const App: Component = () => {
   onMount(() => {
@@ -38,6 +39,9 @@ const App: Component = () => {
             </Show>
             <Show when={activeTab() === 'stores'}>
               <StoreGrid />
+            </Show>
+            <Show when={activeTab() === 'page'}>
+              <PageInfo />
             </Show>
           </div>
         </div>

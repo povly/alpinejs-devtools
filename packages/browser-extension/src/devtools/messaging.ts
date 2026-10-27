@@ -5,6 +5,7 @@ import { setComponentsList, setComponentData, selectComponent } from './state/co
 import { setAdditionalError } from './state/errors';
 import { setStoresFromList, setStoreData } from './state/stores';
 import { setPageLoaded } from './state/app';
+import { setPageInfo } from './state/page-info';
 import { exitInspectorMode } from './state/inspector';
 import { state } from './state/store';
 import type { BackendToPanelMessage, PanelToBackendMessage } from './types';
@@ -62,6 +63,11 @@ export function handleBackendToPanelMessage(
     }
     case BACKEND_TO_PANEL_MESSAGES.ADD_ERROR: {
       setAdditionalError(message.error);
+      setPort(port);
+      break;
+    }
+    case BACKEND_TO_PANEL_MESSAGES.SET_PAGE_INFO: {
+      setPageInfo(message.pageInfo);
       setPort(port);
       break;
     }

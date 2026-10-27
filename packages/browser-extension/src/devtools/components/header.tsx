@@ -117,6 +117,27 @@ export function Header({ activeTab, setActiveTab }: HeaderProps) {
                 />
               </svg>
             </TabLink>
+            <TabLink activeTab={activeTab} setActiveTab={setActiveTab} tab="page">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                classList={{
+                  'xs:mr-1': orientation() === 'landscape',
+                  'xs:mr-0.5': orientation() === 'portrait',
+                }}
+                class="inline-block w-6 h-6 xs:w-5 xs:h-5 xs:opacity-50"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"
+                />
+              </svg>
+            </TabLink>
             {process.env.NODE_ENV !== 'production' ? <DebugMenu /> : ''}
             <ThemeToggle />
           </div>

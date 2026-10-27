@@ -15,6 +15,7 @@ export const BACKEND_TO_PANEL_MESSAGES = {
   SET_STORE_DATA: 'set-store-data',
   ADD_ERROR: 'add-error',
   INSPECT_COMPONENT: 'inspect-component',
+  SET_PAGE_INFO: 'set-page-info',
 } as const;
 
 export const PANEL_TO_BACKEND_MESSAGES = {

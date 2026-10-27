@@ -248,6 +248,7 @@ export function init(forceStart = false) {
 
       this.initAlpineErrorCollection();
       this.sendAlpineVersion();
+      this.sendPageInfo();
       this.watchComponents();
       // Watch on the body for injected components. This is lightweight
       // as work is only done if there are components added/removed
@@ -536,10 +537,8 @@ export function init(forceStart = false) {
       return {};
     }
 
-    sendAlpineVersion() {
-      console.info(`Alpine Devtools: detected version ${this.alpineVersion}`);
-      this._postMessage({
-        version: this.alpineVersion,
+    detectEcosystemTools() {
+      return {
         hasHtmxTarget: !!document.querySelector(
           ['target', 'get', 'post', 'put', 'patch', 'delete']
             .flatMap((suffix) => [`[hx-${suffix}]`, `[data-hx-${suffix}]`])
@@ -550,7 +549,57 @@ export function init(forceStart = false) {
         hasLivewire: !!window.Livewire,
         hasLiveView: !!window.liveSocket,
         hasTurbo: !!window.Turbo,
+      };
+    }
+
+    sendAlpineVersion() {
+      console.info(`Alpine Devtools: detected version ${this.alpineVersion}`);
+      this._postMessage({
+        version: this.alpineVersion,
+        ...this.detectEcosystemTools(),
         type: BACKEND_TO_PANEL_MESSAGES.SET_VERSION,
+      });
+    }
+
+    sendPageInfo() {
+      const alpine = window.Alpine;
+      const plugins = alpine?.plugins ? Object.keys(alpine.plugins).sort() : [];
+      const usedDirectives = new Set();
+      document.querySelectorAll('*').forEach((el) => {
+        for (const attr of el.attributes) {
+          const name = attr.name;
+          if (name.startsWith('x-')) {
+            usedDirectives.add(name.slice(2).split(':')[0]);
+          } else if (name.startsWith(':') && name.length > 1) {
+            usedDirectives.add('bind');
+          } else if (name.startsWith('@') && name.length > 1) {
+            usedDirectives.add('on');
+          }
+        }
+      });
+      const directives = [...usedDirectives].sort();
+      const scripts = Array.from(document.scripts).map((script) => ({
+        src: script.src || null,
+        isInline: !script.src,
+        type: script.type || null,
+        isModule: script.type === 'module',
+        isAsync: script.async,
+        isDeferred: script.defer,
+        inlineLength: script.src ? null : (script.textContent || '').length,
+      }));
+      console.info(
+        `Alpine Devtools: page info — ${directives.length} directives used, ${plugins.length} plugins, ${scripts.length} scripts`,
+      );
+      this._postMessage({
+        type: BACKEND_TO_PANEL_MESSAGES.SET_PAGE_INFO,
+        pageInfo: {
+          alpineVersion: this.alpineVersion,
+          isV3: this.isV3,
+          directives,
+          plugins,
+          ecosystem: this.detectEcosystemTools(),
+          scripts,
+        },
       });
     }
 
@@ -605,6 +654,7 @@ export function init(forceStart = false) {
               return acc;
             }, {})
           : { __root_value: serializeDataProperty(store) };
+
       this._postMessage({
         type: BACKEND_TO_PANEL_MESSAGES.SET_STORE_DATA,
         storeName: selectedStoreName,
