@@ -1,26 +1,7 @@
-import { isEarlyAccess } from '../lib/isEarlyAccess';
-import { version } from '../../package.json';
-
-class Sampler {
-  private sampleRate: number;
-  private counter: number;
-  /**
-   * @param sampleRate Number between 0 (never sample) and 1 (always sample).
-   */
-  constructor(sampleRate: number) {
-    this.sampleRate = sampleRate;
-    this.counter = Math.random();
-  }
-  shouldSample(): boolean {
-    this.counter += this.sampleRate;
-    if (this.counter < 1) {
-      return false;
-    } else {
-      this.counter = Math.random(); // reset
-      return true;
-    }
-  }
-}
+// Fork build: telemetry removed — metric helpers are local DEV-only debug logs.
+// Upstream sent events via window.sa_event / window.sa_pageview; this fork
+// must not perform any network calls for analytics (see
+// .ai-factory/plans/alpine-full-debugging.md, Phase 0 task T3).
 
 export function bucketCount(num: number) {
   if (num === 0) return '0';
@@ -54,24 +35,9 @@ export function bucketTime(ms: number) {
   return `>5000ms`;
 }
 
-const tenPercentSampler = new Sampler(0.1);
-
-export function sampledMetric(
-  name: string,
-  metadata: Record<string, string | number | boolean> = {},
-) {
-  if (tenPercentSampler.shouldSample()) {
-    metric(name, metadata);
-  }
-}
-
-export function view(pathname: string) {
-  window.sa_metadata ??= {
-    build: isEarlyAccess() ? 'ea' : 'ga',
-    buildNum: version,
-  };
-  if (!import.meta.env.DEV && window?.sa_pageview) {
-    window.sa_pageview(pathname);
+export function view(pathname: string): void {
+  if (import.meta.env.DEV) {
+    console.debug('[alpine-devtools] view', pathname);
   }
 }
 
@@ -79,21 +45,17 @@ export function metric(
   name: string,
   metadata: Record<string, string | number | boolean> = {},
 ): void {
-  if (!import.meta.env.DEV && window.sa_event) {
-    window.sa_event(name, {
-      build: isEarlyAccess() ? 'ea' : 'ga',
-      buildNum: version,
-      ...metadata,
-    });
-  } else {
-    console.info('metric', {
-      name,
-      metadata: {
-        build: isEarlyAccess() ? 'ea' : 'ga',
-        buildNum: version,
-        ...metadata,
-      },
-    });
+  if (import.meta.env.DEV) {
+    console.debug('[alpine-devtools] metric', name, metadata);
+  }
+}
+
+export function sampledMetric(
+  name: string,
+  metadata: Record<string, string | number | boolean> = {},
+): void {
+  if (import.meta.env.DEV) {
+    console.debug('[alpine-devtools] sampled-metric', name, metadata);
   }
 }
 

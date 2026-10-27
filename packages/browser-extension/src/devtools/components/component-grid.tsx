@@ -16,13 +16,8 @@ import { Component } from '../types';
 import { ComponentListItem } from './component-list-item';
 import { DataAttributeDisplay } from './data-attribute-display';
 import { SplitPane } from './split-pane';
-import {
-  HistoryFlyout,
-  setShowComponentEarlyAccessOverlay,
-  showComponentEarlyAccessOverlay,
-} from './history-flyout';
+import { HistoryFlyout } from './history-flyout';
 import { ComponentAttrListHeader } from './component-attr-list-header';
-import { EarlyAccessNotice } from './early-access';
 
 const messageHistoryEntries = createMemo(() =>
   openComponentValue() ? messageHistory.components[openComponentValue()!.id] : [],
@@ -31,14 +26,6 @@ const messageHistoryEntries = createMemo(() =>
 export function ComponentGrid() {
   return (
     <>
-      <Show when={showComponentEarlyAccessOverlay()}>
-        <EarlyAccessNotice
-          feature="Time Travel Debugging"
-          featureCode="history"
-          onClose={() => setShowComponentEarlyAccessOverlay(false)}
-          enableClose
-        />
-      </Show>
       <SplitPane
         leftPaneContent={
           <>

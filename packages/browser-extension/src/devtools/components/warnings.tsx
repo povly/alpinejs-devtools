@@ -1,22 +1,10 @@
-import { For, Show, createSignal } from 'solid-js';
-import { isEarlyAccess } from '../../lib/isEarlyAccess';
+import { For, Show } from 'solid-js';
 import { isRequiredVersion } from '../../lib/utils';
 import { errors, hideErrorSource, showErrorSource } from '../state/errors';
 import { state } from '../state/store';
 import { inspectUserGlobal } from '../inspect';
 import { DEVTOOLS_ERROR_ELS_GLOBAL } from '../../lib/constants';
 import { effect } from 'solid-js/web';
-import { EarlyAccessNotice } from './early-access';
-
-const FREE_WARNINGS_COUNT = 3;
-
-const [showEarlyAccessOverlay, setShowEarlyAccessOverlay] = createSignal(false);
-
-effect(() => {
-  if (isEarlyAccess()) {
-    setShowEarlyAccessOverlay(false);
-  }
-});
 
 export function Warnings() {
   let warningsRef!: HTMLDivElement;
@@ -31,14 +19,6 @@ export function Warnings() {
   });
   return (
     <div class="flex h-full w-full overflow-hidden" data-testid="warnings-tab-content">
-      <Show when={showEarlyAccessOverlay()}>
-        <EarlyAccessNotice
-          feature="Warnings"
-          featureCode="warnings"
-          onClose={() => setShowEarlyAccessOverlay(false)}
-          enableClose
-        />
-      </Show>
       <div
         ref={warningsRef}
         class="flex-1 flex flex-col max-h-full overflow-scroll text-gray-600"
@@ -72,30 +52,15 @@ export function Warnings() {
           <div>
             <For each={errors()}>
               {(error, index) => {
-                const isDisabled = () => !isEarlyAccess() && index() >= FREE_WARNINGS_COUNT;
                 return (
                   <div
-                    classList={{
-                      'opacity-25': isDisabled(),
-                    }}
                     class="flex flex-col justify-center leading-6 text-gray-800 font-mono whitespace-nowrap cursor-pointer"
                     data-scroll-target={index() === errors().length - 1 ? 'last-error' : ''}
-                    data-tooltip={!isEarlyAccess() ? 'Click to unlock premium features' : undefined}
-                    data-side="bottom"
-                    onClick={() => {
-                      if (!isEarlyAccess()) {
-                        setShowEarlyAccessOverlay(true);
-                      }
-                    }}
                     onMouseEnter={() => {
-                      if (!isDisabled()) {
-                        showErrorSource(error.errorId);
-                      }
+                      showErrorSource(error.errorId);
                     }}
                     onMouseLeave={() => {
-                      if (!isDisabled()) {
-                        hideErrorSource(error.errorId);
-                      }
+                      hideErrorSource(error.errorId);
                     }}
                   >
                     <Show when={error.type === 'eval'}>
@@ -103,11 +68,6 @@ export function Warnings() {
                         class="flex items-start border-b border-gray-300 p-2 pr-3 bg-red-50/50 dark:bg-red-50/90 hover:bg-yellow-50/50 dark:hover:bg-yellow-50/90"
                         data-testid={`eval-error-${error.source.name}`}
                         onClick={() => {
-                          if (isDisabled()) return;
-                          if (!isEarlyAccess()) {
-                            setShowEarlyAccessOverlay(true);
-                            return;
-                          }
                           inspectUserGlobal(
                             `window.${DEVTOOLS_ERROR_ELS_GLOBAL}[${error.errorId}]`,
                           );
@@ -140,14 +100,7 @@ export function Warnings() {
                             <button
                               class="flex"
                               onClick={(e) => {
-                                if (isDisabled()) {
-                                  e.stopPropagation();
-                                  return;
-                                }
-                                if (!isEarlyAccess()) {
-                                  setShowEarlyAccessOverlay(true);
-                                  return;
-                                }
+                                e.stopPropagation();
                                 inspectUserGlobal(
                                   `window.${DEVTOOLS_ERROR_ELS_GLOBAL}[${error.errorId}]`,
                                 );

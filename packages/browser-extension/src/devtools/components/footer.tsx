@@ -1,18 +1,11 @@
-import { createSignal, Show } from 'solid-js';
+import { createSignal } from 'solid-js';
 import { componentsValue } from '../state/components';
 import { errors } from '../state/errors';
 import { state } from '../state/store';
 import { storesValue } from '../state/stores';
 import { effect } from 'solid-js/web';
 import { bucketCount, metric, sampledMetric } from '../metrics';
-import {
-  earlyAccessExpiry,
-  isEarlyAccess,
-  isEarlyAccessExpiryInPast,
-} from '../../lib/isEarlyAccess';
-import { msToDays } from '../time-utils';
 import { breakpoint } from '../theme';
-import { ActivateLicense } from './activate-license';
 
 interface FooterProps {
   setActiveTab: Function;
@@ -146,33 +139,6 @@ export function Footer({ setActiveTab }: FooterProps) {
             </div>
           </div>
 
-          <Show when={!isEarlyAccess() && earlyAccessExpiry() && isEarlyAccessExpiryInPast()}>
-            <button
-              class="mr-4 flex underline cursor-pointer"
-              onClick={() => setActiveTab('stores')}
-            >
-              Trial expired
-            </button>
-          </Show>
-          <Show
-            when={
-              earlyAccessExpiry() &&
-              earlyAccessExpiry() !== Infinity &&
-              !isEarlyAccessExpiryInPast()
-            }
-          >
-            <div class="mr-4 flex items-center gap-2">
-              <a
-                class="flex underline"
-                href="https://alpinedevtools.com/checkout?utm_source=extension&utm_campaign=trial_link_cta"
-                target="_blank"
-              >
-                Trial expires in: {msToDays(earlyAccessExpiry()! - Date.now()).toFixed(1)} days
-              </a>
-              <span>·</span>
-              <ActivateLicense variant="footer" />
-            </div>
-          </Show>
           <div
             data-testid="version-line"
             class="flex items-center transition-colors duration-700 ease-in-out"
@@ -199,20 +165,14 @@ export function Footer({ setActiveTab }: FooterProps) {
 
       <div class="text-gray-500 dark:text-gray-200 flex items-center ml-3 px-2.5 space-x-1 border-l border-gray-300 transition-colors duration-700">
         <a
-          href={
-            isEarlyAccess()
-              ? 'mailto:support@alpinedevtools.com'
-              : 'https://github.com/alpine-collective/alpinejs-devtools/issues/new'
-          }
+          href="https://github.com/alpine-collective/alpinejs-devtools/issues/new"
           target="_blank"
           data-tooltip="Report a Bug"
           data-side="top"
           class="hover:opacity-75 leading-9 font-medium font-mono"
           onClick={() => {
             metric('footer_cta', {
-              target: isEarlyAccess()
-                ? 'alpine_devtools_bug_email'
-                : 'alpine_devtools_bug_gh_issue',
+              target: 'alpine_devtools_bug_gh_issue',
             });
           }}
         >

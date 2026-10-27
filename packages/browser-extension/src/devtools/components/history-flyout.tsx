@@ -10,14 +10,6 @@ import { DataMessageHistory } from '../types';
 import { effect } from 'solid-js/web';
 import { AlphaSurveyLink } from './alpha-survey-link';
 import { bucketCountLarge, metric } from '../metrics';
-import { isEarlyAccess } from '../../lib/isEarlyAccess';
-
-const FREE_HISTORY_COUNT = 1;
-// TODO move this out of here it's a "components" thing,
-// when we roll this out to stores, no change is needed as stores are an early access feature anyway
-// but should be covered by E2E tests
-export const [showComponentEarlyAccessOverlay, setShowComponentEarlyAccessOverlay] =
-  createSignal(false);
 
 export function HistoryFlyout({
   messageHistoryEntries,
@@ -35,11 +27,6 @@ export function HistoryFlyout({
     }
   });
 
-  effect(() => {
-    if (isEarlyAccess()) {
-      setShowComponentEarlyAccessOverlay(false);
-    }
-  });
   return (
     <>
       <div
@@ -85,7 +72,6 @@ export function HistoryFlyout({
             <For each={messageHistoryEntries()}>
               {(messageEntry, index) => {
                 const messages = messageHistoryEntries();
-                const isDisabled = () => !isEarlyAccess() && index() >= FREE_HISTORY_COUNT;
                 const diff =
                   messages[index()] && messages[index() - 1]
                     ? Number(messages[index()].receivedAt) -
@@ -98,18 +84,9 @@ export function HistoryFlyout({
                     data-scroll-target={
                       index() === messageHistoryEntries().length - 1 ? 'last-error' : ''
                     }
-                    classList={{
-                      'opacity-25': isDisabled(),
-                    }}
-                    data-tooltip={isDisabled() ? 'Click to unlock premium features' : undefined}
-                    data-side="top"
                   >
                     <button
                       onClick={() => {
-                        if (isDisabled()) {
-                          setShowComponentEarlyAccessOverlay(true);
-                          return;
-                        }
                         if (getSelectedMessage()?.id === messageEntry.id) {
                           resetSelectedMessage();
                         } else {

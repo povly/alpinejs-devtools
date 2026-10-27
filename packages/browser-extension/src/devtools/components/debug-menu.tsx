@@ -44,15 +44,6 @@ export function DebugMenu() {
             <div>
               <button
                 class="btn"
-                data-testid="expire-trial-button"
-                onClick={() => chrome.storage.sync.set({ earlyAccess: { expiry: Date.now() - 1 } })}
-              >
-                Set expiry in past
-              </button>
-            </div>
-            <div>
-              <button
-                class="btn"
                 onClick={async () => {
                   const keys = await chrome.storage.sync.getKeys();
                   const storageValue = Object.fromEntries(

@@ -4,12 +4,11 @@ import './styles.css';
 import { Header } from './components/header';
 import { ComponentGrid } from './components/component-grid';
 import { Footer } from './components/footer';
-import { effect, render } from 'solid-js/web';
+import { render } from 'solid-js/web';
 import { handleResize, orientation } from './theme';
 import { StoreGrid } from './components/store-grid';
 import { TabValues } from './types';
 import { Warnings } from './components/warnings';
-import { view } from './metrics';
 
 const App: Component = () => {
   onMount(() => {
@@ -20,11 +19,6 @@ const App: Component = () => {
   });
   const [activeTab, setActiveTab] = createSignal<TabValues>('components');
 
-  effect(() => {
-    if (activeTab()) {
-      view(`/${activeTab()}`);
-    }
-  });
   return (
     <div class="h-full">
       <div class="bg-white dark:bg-alpine-400 flex flex-col relative h-full w-full mx-auto">

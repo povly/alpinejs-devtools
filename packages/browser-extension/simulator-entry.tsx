@@ -8,7 +8,6 @@ import {
   ALPINE_DEVTOOLS_PROXY_SOURCE,
 } from './src/devtools/ports';
 import { INIT_MESSAGE } from './src/lib/constants';
-import { loadPersistedEarlyAccessInfo, forceEarlyAccess } from './src/lib/isEarlyAccess';
 import { setupWorker } from 'msw/browser';
 import { handlers } from './src/mocks/handlers';
 
@@ -61,11 +60,6 @@ async function main() {
   await prepare();
   const target = document.getElementById('target');
   const targetWindow = (target as HTMLIFrameElement).contentWindow;
-
-  if (new URL(window.location.href).searchParams.get('sa-enabled') === 'true') {
-    forceEarlyAccess(false);
-    loadPersistedEarlyAccessInfo();
-  }
 
   initProxy(window, targetWindow!);
 
