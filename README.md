@@ -36,6 +36,65 @@ This is a personal fork with all Early Access features unlocked and no telemetry
 - New: **Reactive change tracking** — changed data keys flash in the inspector, get badges in component/store lists and are recorded in a footer activity log. See [FEATURES.md](./FEATURES.md).
 - Limitation: stores require Alpine v3.8+ (backend restriction, unchanged).
 
+## Fork installation (from source)
+
+### Build
+
+Prerequisites: Node ^24, pnpm ^10.
+
+```bash
+pnpm install
+pnpm build
+```
+
+Outputs (repo root `dist/`):
+
+| Path | Target |
+|---|---|
+| `dist/browser-extension/` | Chrome/Chromium — load unpacked |
+| `dist/firefox-ext/` | Firefox / Zen — unpacked, with the Firefox manifest |
+
+Package a Firefox `.xpi` (when needed):
+
+```bash
+cd dist/firefox-ext && python3 -m zipfile -c ../alpine-devtools-fork.xpi *
+```
+
+### Chrome / Chromium
+
+1. Open `chrome://extensions`, enable **Developer mode**
+2. **Load unpacked** → select `dist/browser-extension`
+
+### Firefox / Zen Browser — temporary load (dev path, no signature needed)
+
+1. Open `about:debugging#/runtime/this-firefox`
+2. Click **Load Temporary Add-on…**
+3. Pick `dist/alpine-devtools-fork.xpi` (or `manifest.json` inside `dist/firefox-ext`)
+4. Open a page with Alpine.js → DevTools (F12) → **Alpine** panel
+
+The add-on disappears after a browser restart — just load it again. Do NOT use
+`about:addons` → "Install Add-on From File…" for the unsigned build: the normal
+install path always requires a Mozilla signature ("is not verified" error).
+
+### Firefox / Zen Browser — permanent install
+
+- **Quick try:** `about:config` → `xpinstall.signatures.required` → `false`, then
+  `about:addons` → gear → *Install Add-on From File…*. Works in some Zen builds,
+  ignored in others.
+- **Reliable:** sign via AMO ("unlisted" — not published to the store):
+  1. Get API keys: <https://addons.mozilla.org/developers/addon/api/key/>
+  2. Replace `browser_specific_settings.gecko.id` in `packages/browser-extension/build.js`
+     with your own ID (the current one belongs to upstream), then rebuild
+  3. `npx web-ext sign --source-dir ./dist/firefox-ext --channel unlisted --api-key KEY --api-secret SECRET`
+  4. Install the signed `.xpi` via *Install Add-on From File…*
+
+### Development
+
+- Simulator (panel + fake page, no browser needed): `pnpm start` → <http://localhost:3000/simulator>
+- Firefox/Zen dev loop with auto-reload:
+  `npx web-ext run --source-dir ./dist/firefox-ext --firefox-binary <path-to-browser>`
+- Checks: `pnpm run format` · `pnpm typecheck` · `pnpm t` (unit) · `pnpm pw:run` (E2E)
+
 ![Screenshot of Alpine.js devtools](docs/devtools-only.png)
 
 Alpine.js devtools is a simple extension to help you debug [Alpine.js](https://github.com/alpinejs/alpine) components easily.
