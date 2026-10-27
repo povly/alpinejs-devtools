@@ -26,6 +26,16 @@ Due to Chrome's Manifest v3 rollout, the extension had to be rewritten. As part 
 
 # Alpine.js devtools
 
+## Fork notice
+
+This is a personal fork with all Early Access features unlocked and no telemetry:
+
+- All previously paid features (stores inspection, warnings, time travel, jump-to-element, data pinning) are available without a license.
+- License checks, trial banners and analytics (`sa_event`/`sa_pageview`, checkoutpage.co) have been removed.
+- New: **Page tab** — Alpine version, directives used, plugins, ecosystem tools (htmx, Turbo, Livewire, …) and the script inventory of the inspected page.
+- New: **Reactive change tracking** — changed data keys flash in the inspector, get badges in component/store lists and are recorded in a footer activity log. See [FEATURES.md](./FEATURES.md).
+- Limitation: stores require Alpine v3.8+ (backend restriction, unchanged).
+
 ![Screenshot of Alpine.js devtools](docs/devtools-only.png)
 
 Alpine.js devtools is a simple extension to help you debug [Alpine.js](https://github.com/alpinejs/alpine) components easily.
